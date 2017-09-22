@@ -1,0 +1,26 @@
+---
+- name: Bootstrap of Managed Node
+  tags:
+    - common
+    - managed
+
+  block:
+    - name: Ansible Ping
+      ping:
+
+  rescue:
+    - debug: msg="Ping Failed, Using RAW to install Python"
+    - name: DNF
+      raw: test -e /usr/bin/dnf && dnf install -y python2 python2-dnf libselinux-python python-simplejson
+      register: dnf_exists
+
+    - name: YUM
+      raw: test -e /usr/bin/yum && yum install -y python2 python2-yum libselinux-python python-simplejson
+      register: yum_exists
+      when: not dnf_exists
+
+    - name: APT
+      raw: test -e /usr/bin/apt-get && apt-get install -y python2 python-apt libselinux-python python-simplejson
+      when:
+        - not dnf_exists
+        - not yum_exists
